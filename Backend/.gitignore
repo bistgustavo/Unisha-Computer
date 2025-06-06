@@ -1,0 +1,53 @@
+/node_modules
+/.env
+/.env.sample
+
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*
+
+# Dependency locks
+package-lock.json
+yarn.lock
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# IDEs/editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Build output
+dist/
+build/
+
+# Misc
+*.tgz
+
+# Prisma
+node_modules/.prisma/
+node_modules/@prisma/client/
+prisma/migrations/
