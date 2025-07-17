@@ -1,4 +1,4 @@
-import { z, ZodString } from "zod";
+import { z } from "zod";
 
 export const registerSchema = z.object({
   username: z.string().min(3),
@@ -7,7 +7,6 @@ export const registerSchema = z.object({
   first_name: z.string().optional(),
   last_name: z.string().optional(),
   phone: z.string().optional(),
-  address: z.string().optional(),
 });
 
 export const loginSchema = z.object({

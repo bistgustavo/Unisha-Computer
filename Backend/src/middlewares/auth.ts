@@ -30,7 +30,6 @@ export const verifyJWT = async (
         profile_url: true,
         web_role: true,
         phone: true,
-        address: true,
         createdAt: true,
       },
     });

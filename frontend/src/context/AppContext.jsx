@@ -1,125 +1,146 @@
-import { useContext, useEffect, useState } from "react";
+import { use, useContext, useEffect, useState } from "react";
 import { createContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { dummyProducts } from "../assets/assets";
-import toast from "react-hot-toast";
+import axios from "axios";
+import { getCart, getOrCreateCart, getCurrentUserCart } from "../services/cartService";
 
 export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
+  // creating api for backend
+  const api = axios.create({
+    baseURL: "http://localhost:3000/api/v2/",
+    timeout: 10000,
+    withCredentials: true,
+    credentials: "include",
+  });
+
+  const apiFile = axios.create({
+    baseURL: "http://localhost:3000/api/v2/",
+    timeout: 10000,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    credentials: "include",
+    withCredentials: true,
+  });
+
   const currency = import.meta.env.VITE_CURRENCY;
 
   const navigate = useNavigate();
 
   const [user, setUser] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
-  const [showUserLogin, setShowUserLogin] = useState(false);
+  const [userData, setUserData] = useState(null);
 
-  const [products, setProducts] = useState([]);
-
-  const [cartItems, setCartItems] = useState({});
+  const [apiProduct, setApiProduct] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState([]);
 
-  // fetch all products
-  const fetchProducts = async () => {
-    setProducts(dummyProducts);
+  const [categoryData, setCategoryData] = useState([]);
+
+  const [cartCount, setCartCount] = useState(0);
+  const [cart, setCart] = useState(0);
+
+  const fetchProductsFromApi = async () => {
+    try {
+      const response = await api.get("/product/allproducts");
+      const products = response.data.data;
+      setApiProduct(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchProductsFromApi();
   }, []);
 
-  //add product to cart
-
-  const addToCart = (itemId) => {
-    let cartData = structuredClone(cartItems);
-
-    if (cartData[itemId]) {
-      cartData[itemId] += 1;
-    } else {
-      cartData[itemId] = 1;
-    }
-
-    setCartItems(cartData);
-
-    toast.success("Item added to cart");
-  };
-
-  //udate cart items
-
-  const updateCartItems = (itemId, quantity) => {
-    let cartData = structuredClone(cartItems);
-
-    if (cartData[itemId]) {
-      cartData[itemId] = quantity;
-    } else {
-      cartData[itemId] = 1;
-    }
-
-    setCartItems(cartData);
-
-    toast.success("Item updated in cart");
-  };
-
-  //REMOVE ITEM FROM CART
-
-  const removeItemFromCart = (itemId) => {
-    let cartData = structuredClone(cartItems);
-
-    if (cartData[itemId]) {
-      cartData[itemId] -= 1;
-      if (cartData[itemId] === 0) {
-        delete cartData[itemId];
+  //total cart item count
+  const refreshCart = async () => {
+    try {
+      let result = null;
+      
+      // If user is authenticated, use getCurrentUserCart
+      if (user) {
+        try {
+          result = await getCurrentUserCart();
+          if (result && result.cart_id) {
+            localStorage.setItem("CartId", result.cart_id);
+          }
+        } catch (err) {
+          console.error("Error fetching user cart for count:", err);
+          // If user cart fetch fails, try with cartId
+          const cartId = localStorage.getItem("CartId");
+          if (cartId) {
+            result = await getCart(cartId);
+          }
+        }
+      } else {
+        // For guest users, use the existing cart ID logic
+        const cartId = localStorage.getItem("CartId");
+        if (cartId) {
+          result = await getCart(cartId);
+        }
       }
-    }
-
-    toast.success("Item removed from cart");
-    setCartItems(cartData);
-  };
-
-  // Get total cart Item
-  const getCartCount = () => {
-    let totalItem = 0;
-    for (const item in cartItems) {
-      totalItem += cartItems[item];
-    }
-    return totalItem;
-  };
-
-  // Get Total cart Amount
-
-  const getCartAmount = () => {
-    let totalAmount = 0;
-    for (const items in cartItems) {
-      let itemInfo = products.find((product) => product._id === items);
-
-      if (cartItems[items] > 0) {
-        totalAmount += itemInfo.offerPrice * cartItems[items];
+      
+      if (!result) {
+        setCartCount(0);
+        return;
       }
-    }
 
-    return Math.ceil(totalAmount * 100) / 100;
+      const items = result?.items || [];
+      const count = items.reduce(
+        (totalAmount, item) => totalAmount + item.quantity,
+        0
+      );
+      setCartCount(count);
+    } catch (error) {
+      console.error("Error refreshing cart:", error);
+      setCartCount(0);
+    }
   };
+
+  // fetch cart
+  const fetchCart = async () => {
+    try {
+      const result = await getOrCreateCart();
+      if (!result) return;
+      setCart(result);
+      if (result.cart_id) {
+        localStorage.setItem("CartId", result.cart_id);
+      }
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshCart();
+  }, []);
 
   const value = {
+    cart,
+    setCart,
+    fetchCart,
+    cartCount,
+    setCartCount,
+    refreshCart,
+    userData,
+    setUserData,
+    api,
+    apiFile,
     navigate,
     user,
     setUser,
     isSeller,
     setIsSeller,
-    showUserLogin,
-    setShowUserLogin,
-    products,
+    apiProduct,
     currency,
-    cartItems,
-    addToCart,
-    updateCartItems,
-    removeItemFromCart,
     searchQuery,
     setSearchQuery,
-    getCartAmount,
-    getCartCount
+    categoryData,
+    setCategoryData,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

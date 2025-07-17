@@ -3,20 +3,22 @@ import { useAppContext } from "../../context/AppContext";
 import ProductCard from "../ProductCard";
 
 function AllProducts() {
-  const { products, searchQuery } = useAppContext();
+  const { searchQuery, apiProduct} = useAppContext();
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   useEffect(() => {
-    if (searchQuery.lenght > 0) {
+    if (searchQuery.length > 0) {
       setFilteredProducts(
-        products.filter((product) =>
+        apiProduct.filter((product) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase())
         )
       );
     } else {
-      setFilteredProducts(products);
+      setFilteredProducts(apiProduct);
     }
-  }, [products, searchQuery]);
+  }, [apiProduct, searchQuery]);
+
+  
 
   return (
     <div className="mt-16 flex flex-col">
@@ -27,9 +29,9 @@ function AllProducts() {
 
       <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mt-6 ">
         {filteredProducts
-          .filter((product) => product.inStock)
+          .filter((product) => product.stock === "available")
           .map((product, index) => {
-            return <ProductCard key={product._id} product={product} />;
+            return <ProductCard key={product.product_id} product={product} />;
           })}
       </div>
     </div>

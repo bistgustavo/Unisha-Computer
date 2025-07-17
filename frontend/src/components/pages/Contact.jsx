@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { FaPhone, FaEnvelope, FaUser, FaPaperPlane } from "react-icons/fa";
 import { MdSubject, MdMessage } from "react-icons/md";
-import axios from "axios";
 
 const GOOGLE_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbwRJqIv0aXh29ik8QupwmF08xnQcYLoxnhixMV61CcOAWY3nwTnqj_7dShN7VYY-sqm/exec"; // Replace this with your Google Apps Script deployment URL

@@ -54,24 +54,24 @@ enum PaymentStatus {
 
 // ===== MODELS =====
 model User {
-  user_id     String     @id @default(uuid())
-  username    String     @unique
-  first_name  String
-  last_name   String
-  web_role    WebRole    @default(customer)
-  email       String     @unique
-  password    String
-  profile_url String?
-  accessToken String?   @unique
-  phone       String?
-  address     String?
-  status      UserStatus @default(active)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  cart        Cart?
-  orders      Order[]
-  payments    Payment[]
-  reviews     Review[]
+  user_id      String     @id @default(uuid())
+  username     String     @unique
+  first_name   String
+  last_name    String
+  web_role     WebRole    @default(customer)
+  email        String     @unique
+  password     String
+  profile_url  String?
+  accessToken  String?    @unique
+  phone        String?
+  status       UserStatus @default(active)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  addresses    Address[]
+  cart         Cart?
+  orders       Order[]
+  payments     Payment[]
+  reviews      Review[]
 
   @@map("users")
 }
@@ -82,12 +82,14 @@ model Product {
   description     String?
   price           Decimal
   quantity        Int
+  offerPrice      Decimal?
   stock           ProductStockStatus @default(available)
-  stock_quantity  Int
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
-  image_url       String?
-  video_url       String?
+  image_url1      String?
+  image_url2      String?
+  image_url3      String?
+  image_url4      String?
   category_id     String?
   category        Category?          @relation(fields: [category_id], references: [category_id])
   cartItems       CartItem[]
@@ -108,10 +110,28 @@ model Category {
   @@map("categories")
 }
 
+model Address {
+  address_id  String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [user_id])
+  street      String?
+  city        String
+  state       String
+  postal_code String
+  country     String   @default("Nepal")
+  is_default  Boolean  @default(false)
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("addresses")
+}
+
 model Cart {
   cart_id    String     @id @default(uuid())
-  user_id    String     @unique
-  user       User       @relation(fields: [user_id], references: [user_id])
+  user_id    String?     @unique
+  user       User?       @relation(fields: [user_id], references: [user_id])
+  guestId     String?   @unique
   items      CartItem[]
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
@@ -133,46 +153,47 @@ model CartItem {
 }
 
 model Order {
-  order_id     String      @id @default(uuid())
-  user_id      String
-  user         User        @relation(fields: [user_id], references: [user_id])
-  items        OrderItem[]
-  total_amount Decimal
-  status       OrderStatus @default(pending)
-  payment      Payment?
-  shipping_address String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  order_id       String      @id @default(uuid())
+  user_id        String
+  user           User        @relation(fields: [user_id], references: [user_id])
+  address_id     String
+  address        Address     @relation(fields: [address_id], references: [address_id])
+  items          OrderItem[]
+  total_amount   Decimal
+  status         OrderStatus @default(pending)
+  payment        Payment?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@map("orders")
 }
 
 model OrderItem {
-  order_item_id String   @id @default(uuid())
-  order_id      String
-  order         Order    @relation(fields: [order_id], references: [order_id])
-  product_id    String
-  product       Product  @relation(fields: [product_id], references: [product_id])
-  quantity      Int
+  order_item_id   String   @id @default(uuid())
+  order_id        String
+  order           Order    @relation(fields: [order_id], references: [order_id])
+  product_id      String
+  product         Product  @relation(fields: [product_id], references: [product_id])
+  quantity        Int
   price_at_purchase Decimal
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("order_items")
 }
 
 model Payment {
   payment_id     String         @id @default(uuid())
-  order_id      String     @unique
-  order         Order      @relation(fields: [order_id], references: [order_id])
-  user_id       String
-  user          User           @relation(fields: [user_id], references: [user_id])
-  amount        Decimal
-  method        PaymentMethod @default(e_sewa)
-  status        PaymentStatus  @default(pending)
+  order_id       String         @unique
+  order          Order          @relation(fields: [order_id], references: [order_id])
+  user_id        String
+  user           User           @relation(fields: [user_id], references: [user_id])
+  amount         Decimal
+  method         PaymentMethod  @default(cash_on_delivery)
+  status         PaymentStatus  @default(pending)
   transaction_id String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@map("payments")
 }

@@ -4,6 +4,7 @@ import Categories from "../Categories";
 import BestSeller from "../BestSeller";
 
 function Home() {
+
   return (
     <div className="min-h-screen px-4 sm:px-6 lg:px-8 animate-fadeIn">
       <div className="mt-4 animate-slideInDown">

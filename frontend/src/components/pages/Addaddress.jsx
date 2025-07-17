@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import { FaHome, FaCity, FaGlobe, FaMapMarkerAlt } from "react-icons/fa";
 import { MdLocationCity } from "react-icons/md";
+import toast from "react-hot-toast";
 
 function Addaddress() {
-  const { navigate } = useAppContext();
+  const { navigate, api } = useAppContext();
   const [formData, setFormData] = useState({
     street: "",
     city: "",
@@ -34,10 +35,6 @@ function Addaddress() {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.street.trim()) {
-      newErrors.street = "Street address is required";
-    }
-
     if (!formData.city.trim()) {
       newErrors.city = "City is required";
     }
@@ -52,8 +49,6 @@ function Addaddress() {
 
     if (!formData.pincode.trim()) {
       newErrors.pincode = "PIN code is required";
-    } else if (!/^\d{6}$/.test(formData.pincode)) {
-      newErrors.pincode = "Please enter a valid 6-digit PIN code";
     }
 
     setErrors(newErrors);
@@ -70,18 +65,24 @@ function Addaddress() {
     setIsSubmitting(true);
 
     try {
-      // Here you would typically make an API call to save the address
-      // For now, we'll just simulate success
-      console.log("Address saved:", formData);
+      const response = await api.post(
+        "address/setaddress",
+        {
+          street: formData?.street,
+          city: formData.city,
+          state: formData.state,
+          postal_code: formData.pincode, // Changed from pincode to postal_code
+          country: formData.country,
+        },
+      );
 
-      // Navigate back to cart page after successful submission
-      navigate(-1);
+      if (response.status === 201) {
+        toast.success("Address saved successfully!");
+        navigate("/cart");
+      }
     } catch (error) {
-      console.error("Error saving address:", error);
-      setErrors((prev) => ({
-        ...prev,
-        submit: "Failed to save address. Please try again.",
-      }));
+      console.error("Full error:", error);
+      toast.error(error.response?.data?.message || "Failed to save address");
     } finally {
       setIsSubmitting(false);
     }

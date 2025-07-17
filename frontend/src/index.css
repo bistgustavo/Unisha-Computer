@@ -54,3 +54,8 @@
 .animate-slideInUp {
   animation-fill-mode: both;
 }
+
+
+.no-scrollbar:: -webkit-scrollbar{
+  display:none;
+}

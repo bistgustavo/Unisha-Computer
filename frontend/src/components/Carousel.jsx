@@ -2,12 +2,10 @@ import React, { useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import { useAppContext } from "../context/AppContext";
 
 const ResponsiveCarousel = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const { navigate } = useAppContext();
 
   const carouselItems = [
     {
