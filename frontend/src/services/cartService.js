@@ -75,6 +75,16 @@ const getCurrentUserCart = async () => {
   }
 };
 
+const clearCart = async (cartId ) => {
+  try{
+    const response = await api.delete(`/cart/${cartId}/clear`);
+    return response.data.data;
+  }catch(error){
+    console.error("Error clearing cart:", error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || "Failed to clear cart");
+  }
+}
+
 export {
   getOrCreateCart,
   addItemToCart,
@@ -82,4 +92,5 @@ export {
   mergeCarts,
   getCart,
   getCurrentUserCart,
+  clearCart
 };

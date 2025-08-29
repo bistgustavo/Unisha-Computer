@@ -7,7 +7,9 @@ import {
   removeItemFromCart,
   getCart,
   getCurrentUserCart,
+  clearCart,
 } from "../../services/cartService";
+import orderService from "../../services/orderService.js";
 import toast from "react-hot-toast";
 
 function Cart() {
@@ -19,8 +21,7 @@ function Cart() {
   const [paymentOption, setPaymentOption] = useState("COD");
   const [error, setError] = useState(null);
 
-  const { api, currency, navigate, user, refreshCart } = useAppContext();
-  const shipping_charge = 150;
+  const { api, currency, navigate, user, refreshCart, updateCart } = useAppContext();
 
   const fetchCart = async () => {
     try {
@@ -80,10 +81,6 @@ function Cart() {
     }
   };
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
   // Refresh cart when user changes
   useEffect(() => {
     fetchCart();
@@ -94,7 +91,7 @@ function Cart() {
 
   const getCartAmount = () =>
     cart?.items?.reduce(
-      (acc, item) => acc + item.product.price * item.quantity,
+      (acc, item) => acc + Number(item.product.price) * item.quantity,
       0
     ) || 0;
 
@@ -131,14 +128,12 @@ function Cart() {
     }
   };
 
-  const clearCart = async () => {
+  const handleClearCart = async () => {
     try {
       const cartId = localStorage.getItem("CartId");
       if (!cartId || !cart?.items) return;
 
-      for (const item of cart.items) {
-        await removeItemFromCart(cartId, item.cart_item_id);
-      }
+      await clearCart(cartId);
 
       await fetchCart();
       await refreshCart();
@@ -151,14 +146,57 @@ function Cart() {
   const placeOrder = async () => {
     if (!selectAddress) {
       setError("Please select a delivery address");
+      toast.error("Please select a delivery address");
+      return;
+    }
+
+    if (!cart?.items || cart.items.length === 0) {
+      toast.error("Your cart is empty");
       return;
     }
 
     try {
-      alert(`Order placed to ${selectAddress.street}, ${selectAddress.city}`);
-      await clearCart();
-    } catch (err) {
-      toast.error("Order failed");
+      setLoading(true);
+      setError(null);
+
+      // Map payment option to backend format
+      const paymentMethodMap = {
+        "COD": "cash_on_delivery",
+        "Online": "online_payment"
+      };
+
+      const orderData = {
+        addressId: selectAddress.address_id,
+        paymentMethod: paymentMethodMap[paymentOption] || "cash_on_delivery"
+      };
+
+      // Create order using the API
+      const response = await orderService.createOrder(orderData);
+      
+      if (response.success) {
+        // Show success message with order details
+        toast.success(`Order placed successfully! Order ID: ${response.data.order_id?.slice(-8)}`);
+        
+        // Clear the cart and refresh
+        await fetchCart();
+        await refreshCart();
+        
+        // Navigate to orders page to see the placed order
+        setTimeout(() => {
+          navigate("/my-orders");
+          window.scrollTo(0, 0);
+        }, 2000);
+      } else {
+        throw new Error(response.message || "Order creation failed");
+      }
+      
+    } catch (error) {
+      console.error("Error placing order:", error);
+      const errorMessage = error.message || error.error || "Failed to place order. Please try again.";
+      toast.error(errorMessage);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -304,7 +342,7 @@ function Cart() {
           </button>
 
           <button
-            onClick={clearCart}
+            onClick={handleClearCart}
             disabled={loading}
             className="px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
           >
@@ -353,6 +391,11 @@ function Cart() {
               </div>
             )}
           </div>
+          {error && (
+            <div className="mt-4 p-2 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
           <p className="text-sm font-medium uppercase mt-6">Payment Method</p>
           <select
             onChange={(e) => setPaymentOption(e.target.value)}
@@ -364,29 +407,10 @@ function Cart() {
         </div>
         <hr className="border-gray-300" />
         <div className="text-gray-500 mt-4 space-y-2">
-          <p className="flex justify-between">
-            <span>Price</span>
-            <span>
-              {currency} {getCartAmount()}
-            </span>
-          </p>
-          <p className="flex justify-between">
-            <span>Shipping Fee</span>
-            <span className="text-green-600">
-              {currency} {shipping_charge}
-            </span>
-          </p>
-          <p className="flex justify-between">
-            <span>Tax (2%)</span>
-            <span>
-              {currency} {(getCartAmount() * 2) / 100}
-            </span>
-          </p>
-          <p className="flex justify-between text-lg font-medium mt-3">
+          <p className="flex justify-between text-lg font-medium">
             <span>Total Amount:</span>
             <span>
-              {currency}{" "}
-              {shipping_charge + getCartAmount() + (getCartAmount() * 2) / 100}
+              {currency} {getCartAmount().toFixed(2)}
             </span>
           </p>
         </div>
@@ -394,9 +418,17 @@ function Cart() {
           onClick={() => {
             !user ? navigate("/login") : placeOrder();
           }}
-          className="w-full py-3 mt-6 cursor-pointer bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105 hover:shadow-lg rounded-2xl"
+          disabled={loading}
+          className="w-full py-3 mt-6 cursor-pointer bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105 hover:shadow-lg rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          {paymentOption === "COD" ? "Place Order" : "Proceed To CheckOut"}
+          {loading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+              <span>Placing Order...</span>
+            </div>
+          ) : (
+            paymentOption === "COD" ? "Place Order" : "Proceed To CheckOut"
+          )}
         </button>
       </div>
     </div>

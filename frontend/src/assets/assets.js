@@ -35,53 +35,8 @@ import softwares from "./software.png";
 import banner2 from "./banner2.png";
 import banner3 from "./banner3.png";
 import banner4 from "./banner4.jpg";
-// Hardware Components
-import intel_i7_1 from "./intel_i7_1.png";
-import intel_i7_2 from "./intel_i7_2.png";
-import corsair_ddr5_1 from "./corsair_ddr5_1.png";
-import samsung_980_1 from "./samsung_980_1.png";
-import asus_rog_b650_1 from "./asus_rog_b650_1.png";
-import cm_212_rgb_1 from "./cm_212_rgb_1.png";
+import payment_icon from "./payment_icon.png";
 
-// Peripherals
-import mx_master_3_1 from "./mx_master_3_1.png";
-import k70_rgb_1 from "./k70_rgb_1.png";
-import kraken_x_1 from "./kraken_x_1.png";
-import wacom_one_1 from "./wacom_one_1.png";
-import dell_monitor_24_1 from "./dell_monitor_24_1.png";
-
-// Networking
-import ax50_1 from "./ax50_1.png";
-import gs305_1 from "./gs305_1.png";
-import unifi_ac_lite_1 from "./unifi_ac_lite_1.png";
-import dwa171_1 from "./dwa171_1.png";
-import e8450_1 from "./e8450_1.png";
-
-// Cables
-import usb_c_hdmi_1 from "./usb_c_hdmi_1.png";
-import cat6_cable_1 from "./cat6_cable_1.png";
-import anker_lightning_1 from "./anker_lightning_1.png";
-import hdmi_21_1 from "./hdmi_21_1.png";
-import sata_cable_1 from "./sata_cable_1.png";
-
-// Laptops
-import xps13_1 from "./xps13_1.png";
-import pavilion15_1 from "./pavilion15_1.png";
-import legion5pro_1 from "./legion5pro_1.png";
-import macbook_air_m2_1 from "./macbook_air_m2_1.png";
-import tuf_f15_1 from "./tuf_f15_1.png";
-
-// Printers
-import deskjet_2331_1 from "./deskjet_2331_1.png";
-import pixma_g3000_1 from "./pixma_g3000_1.png";
-import ecotank_l3250_1 from "./ecotank_l3250_1.png";
-import brother_l2321d_1 from "./brother_l2321d_1.png";
-import m1005_mfp_1 from "./m1005_mfp_1.png";
-
-// Software
-import office_2021_1 from "./office_2021_1.png";
-import photoshop_elements_2024 from "./photoshop_elements_2024.png";
-import autocad_2025_1 from "./autocad_2025_1.png";
 
 export const assets = {
   logo,
@@ -114,6 +69,7 @@ export const assets = {
   bottom_banner_image_sm,
   add_address_iamge,
   box_icon,
+  payment_icon,
 };
 
 export const categories = [
@@ -224,7 +180,7 @@ export const dummyProducts = [
     category: "hardwares",
     price: 450,
     offerPrice: 420,
-    image: [intel_i7_1, intel_i7_2],
+    image: [pc_hardware_components],
     description: [
       "12th Gen Intel Core processor",
       "High performance for gaming and productivity",
@@ -240,7 +196,7 @@ export const dummyProducts = [
     category: "hardwares",
     price: 120,
     offerPrice: 110,
-    image: [corsair_ddr5_1],
+    image: [pc_hardware_components],
     description: [
       "3200MHz DDR5 RAM",
       "Low-latency performance",
@@ -256,7 +212,7 @@ export const dummyProducts = [
     category: "hardwares",
     price: 160,
     offerPrice: 150,
-    image: [samsung_980_1],
+    image: [pc_hardware_components],
     description: [
       "High-speed PCIe Gen4",
       "Read speeds up to 7000MB/s",
@@ -272,7 +228,7 @@ export const dummyProducts = [
     category: "hardwares",
     price: 280,
     offerPrice: 265,
-    image: [asus_rog_b650_1],
+    image: [pc_hardware_components],
     description: [
       "Supports AMD Ryzen processors",
       "PCIe 5.0 slots and DDR5 RAM",
@@ -288,7 +244,7 @@ export const dummyProducts = [
     category: "hardwares",
     price: 55,
     offerPrice: 50,
-    image: [cm_212_rgb_1],
+    image: [pc_hardware_components],
     description: [
       "Air CPU cooler with RGB fan",
       "Universal socket compatibility",
@@ -296,462 +252,6 @@ export const dummyProducts = [
     ],
     createdAt: "2025-03-20T07:17:46.018Z",
     updatedAt: "2025-03-20T07:18:13.103Z",
-    inStock: true,
-  },
-
-  // Peripherals
-  {
-    _id: "pr001",
-    name: "Logitech MX Master 3",
-    category: "Peripherals",
-    price: 100,
-    offerPrice: 90,
-    image: [mx_master_3_1],
-    description: [
-      "Advanced wireless mouse",
-      "Ergonomic design",
-      "Multi-device connectivity",
-    ],
-    createdAt: "2025-03-25T08:00:00.000Z",
-    updatedAt: "2025-03-25T08:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pr002",
-    name: "Corsair K70 RGB Mechanical Keyboard",
-    category: "Peripherals",
-    price: 150,
-    offerPrice: 135,
-    image: [k70_rgb_1],
-    description: [
-      "Cherry MX switches",
-      "Customizable RGB lighting",
-      "Detachable wrist rest",
-    ],
-    createdAt: "2025-03-22T08:00:00.000Z",
-    updatedAt: "2025-03-22T08:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pr003",
-    name: "Razer Kraken X Headset",
-    category: "Peripherals",
-    price: 60,
-    offerPrice: 55,
-    image: [kraken_x_1],
-    description: [
-      "7.1 surround sound",
-      "Lightweight comfort",
-      "Crystal-clear mic",
-    ],
-    createdAt: "2025-03-21T08:00:00.000Z",
-    updatedAt: "2025-03-21T08:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pr004",
-    name: "Wacom One Pen Tablet",
-    category: "Peripherals",
-    price: 95,
-    offerPrice: 85,
-    image: [wacom_one_1],
-    description: [
-      "Digital drawing tablet",
-      "Compatible with Windows and Mac",
-      "Comes with stylus",
-    ],
-    createdAt: "2025-03-20T08:00:00.000Z",
-    updatedAt: "2025-03-20T08:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pr005",
-    name: "Dell 24” Full HD Monitor",
-    category: "Peripherals",
-    price: 180,
-    offerPrice: 165,
-    image: [dell_monitor_24_1],
-    description: [
-      "1920x1080 resolution",
-      "IPS panel with wide viewing angles",
-      "HDMI and VGA input",
-    ],
-    createdAt: "2025-03-18T08:00:00.000Z",
-    updatedAt: "2025-03-18T08:05:00.000Z",
-    inStock: true,
-  },
-
-  // Networking
-  {
-    _id: "nw001",
-    name: "TP-Link Archer AX50 Wi-Fi 6 Router",
-    category: "Networking",
-    price: 140,
-    offerPrice: 125,
-    image: [ax50_1],
-    description: [
-      "Dual-band Wi-Fi 6 router",
-      "Up to 3 Gbps speed",
-      "OFDMA and MU-MIMO support",
-    ],
-    createdAt: "2025-03-25T08:20:00.000Z",
-    updatedAt: "2025-03-25T08:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "nw002",
-    name: "Netgear GS305 5-Port Switch",
-    category: "Networking",
-    price: 30,
-    offerPrice: 28,
-    image: [gs305_1],
-    description: [
-      "Gigabit Ethernet switch",
-      "Plug-and-play setup",
-      "Metal housing",
-    ],
-    createdAt: "2025-03-24T08:20:00.000Z",
-    updatedAt: "2025-03-24T08:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "nw003",
-    name: "Ubiquiti UniFi AC Lite Access Point",
-    category: "Networking",
-    price: 99,
-    offerPrice: 90,
-    image: [unifi_ac_lite_1],
-    description: [
-      "Dual-band 802.11ac access point",
-      "Ideal for home/office",
-      "Compact design",
-    ],
-    createdAt: "2025-03-23T08:20:00.000Z",
-    updatedAt: "2025-03-23T08:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "nw004",
-    name: "D-Link DWA-171 USB WiFi Adapter",
-    category: "Networking",
-    price: 20,
-    offerPrice: 18,
-    image: [dwa171_1],
-    description: [
-      "Dual-band wireless adapter",
-      "Nano form factor",
-      "Easy plug-and-play",
-    ],
-    createdAt: "2025-03-22T08:20:00.000Z",
-    updatedAt: "2025-03-22T08:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "nw005",
-    name: "Linksys E8450 WiFi 6 Router",
-    category: "Networking",
-    price: 130,
-    offerPrice: 115,
-    image: [e8450_1],
-    description: [
-      "AX3200 Dual-Band WiFi",
-      "Covers up to 2500 sq. ft.",
-      "Supports up to 25+ devices",
-    ],
-    createdAt: "2025-03-21T08:20:00.000Z",
-    updatedAt: "2025-03-21T08:25:00.000Z",
-    inStock: true,
-  },
-
-  // Cables
-  {
-    _id: "cb001",
-    name: "UGREEN USB-C to HDMI Cable 6ft",
-    category: "Cables",
-    price: 22,
-    offerPrice: 19,
-    image: [usb_c_hdmi_1],
-    description: [
-      "4K UHD output",
-      "Plug-and-play",
-      "Compatible with MacBook, laptops",
-    ],
-    createdAt: "2025-03-25T08:40:00.000Z",
-    updatedAt: "2025-03-25T08:45:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "cb002",
-    name: "Amazon Basics Cat6 Ethernet Cable 10ft",
-    category: "Cables",
-    price: 12,
-    offerPrice: 10,
-    image: [cat6_cable_1],
-    description: [
-      "High-speed data transfer",
-      "Backward compatible with Cat5",
-      "Durable and flexible",
-    ],
-    createdAt: "2025-03-24T08:40:00.000Z",
-    updatedAt: "2025-03-24T08:45:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "cb003",
-    name: "Anker Powerline II Lightning Cable",
-    category: "Cables",
-    price: 20,
-    offerPrice: 17,
-    image: [anker_lightning_1],
-    description: [
-      "MFi certified",
-      "Lasts 12x longer than standard cables",
-      "Supports fast charging",
-    ],
-    createdAt: "2025-03-23T08:40:00.000Z",
-    updatedAt: "2025-03-23T08:45:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "cb004",
-    name: "HDMI 2.1 Cable 6ft",
-    category: "Cables",
-    price: 15,
-    offerPrice: 13,
-    image: [hdmi_21_1],
-    description: [
-      "Supports 8K@60Hz, 4K@120Hz",
-      "Compatible with PS5/Xbox",
-      "Ultra HD transfer",
-    ],
-    createdAt: "2025-03-22T08:40:00.000Z",
-    updatedAt: "2025-03-22T08:45:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "cb005",
-    name: "SATA III Data Cable 18 inch",
-    category: "Cables",
-    price: 8,
-    offerPrice: 7,
-    image: [sata_cable_1],
-    description: [
-      "For SSD/HDD connection",
-      "Supports up to 6 Gbps",
-      "Straight and right-angle connectors",
-    ],
-    createdAt: "2025-03-21T08:40:00.000Z",
-    updatedAt: "2025-03-21T08:45:00.000Z",
-    inStock: true,
-  },
-
-  // Laptops
-  {
-    _id: "lp001",
-    name: "Dell XPS 13 (12th Gen)",
-    category: "Laptops",
-    price: 1100,
-    offerPrice: 1050,
-    image: [xps13_1],
-    description: [
-      "13.4-inch FHD+ display",
-      "Intel Core i7, 16GB RAM, 512GB SSD",
-      "Lightweight and premium design",
-    ],
-    createdAt: "2025-03-25T09:00:00.000Z",
-    updatedAt: "2025-03-25T09:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "lp002",
-    name: "HP Pavilion 15",
-    category: "Laptops",
-    price: 780,
-    offerPrice: 740,
-    image: [pavilion15_1],
-    description: [
-      "Intel Core i5, 8GB RAM, 256GB SSD",
-      "Full HD display",
-      "Windows 11 Home",
-    ],
-    createdAt: "2025-03-24T09:00:00.000Z",
-    updatedAt: "2025-03-24T09:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "lp003",
-    name: "Lenovo Legion 5 Pro",
-    category: "Laptops",
-    price: 1400,
-    offerPrice: 1300,
-    image: [legion5pro_1],
-    description: [
-      "AMD Ryzen 7, RTX 3070, 16GB RAM",
-      "WQHD 165Hz display",
-      "Designed for gamers",
-    ],
-    createdAt: "2025-03-23T09:00:00.000Z",
-    updatedAt: "2025-03-23T09:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "lp004",
-    name: "Apple MacBook Air M2",
-    category: "Laptops",
-    price: 1199,
-    offerPrice: 1149,
-    image: [macbook_air_m2_1],
-    description: [
-      "Apple M2 chip, 8GB RAM, 256GB SSD",
-      "Fanless and silent",
-      "Ultra-portable",
-    ],
-    createdAt: "2025-03-22T09:00:00.000Z",
-    updatedAt: "2025-03-22T09:05:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "lp005",
-    name: "ASUS TUF Gaming F15",
-    category: "Laptops",
-    price: 990,
-    offerPrice: 950,
-    image: [tuf_f15_1],
-    description: [
-      "Intel Core i7, GTX 1650, 512GB SSD",
-      "144Hz display",
-      "Durable military-grade build",
-    ],
-    createdAt: "2025-03-21T09:00:00.000Z",
-    updatedAt: "2025-03-21T09:05:00.000Z",
-    inStock: true,
-  },
-
-  // Printers
-  {
-    _id: "pt001",
-    name: "HP DeskJet 2331 All-in-One",
-    category: "Printers",
-    price: 80,
-    offerPrice: 70,
-    image: [deskjet_2331_1],
-    description: ["Print, scan, and copy", "Compact design", "Affordable ink"],
-    createdAt: "2025-03-25T09:20:00.000Z",
-    updatedAt: "2025-03-25T09:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pt002",
-    name: "Canon PIXMA G3000",
-    category: "Printers",
-    price: 170,
-    offerPrice: 160,
-    image: [pixma_g3000_1],
-    description: [
-      "Wireless printing",
-      "High-volume ink tanks",
-      "Color printer",
-    ],
-    createdAt: "2025-03-24T09:20:00.000Z",
-    updatedAt: "2025-03-24T09:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pt003",
-    name: "Epson EcoTank L3250",
-    category: "Printers",
-    price: 200,
-    offerPrice: 185,
-    image: [ecotank_l3250_1],
-    description: [
-      "Cost-effective ink system",
-      "Wi-Fi Direct printing",
-      "Compact and modern design",
-    ],
-    createdAt: "2025-03-23T09:20:00.000Z",
-    updatedAt: "2025-03-23T09:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pt004",
-    name: "Brother HL-L2321D Mono Laser Printer",
-    category: "Printers",
-    price: 150,
-    offerPrice: 140,
-    image: [brother_l2321d_1],
-    description: [
-      "Duplex printing",
-      "Fast and reliable",
-      "Ideal for home and office",
-    ],
-    createdAt: "2025-03-22T09:20:00.000Z",
-    updatedAt: "2025-03-22T09:25:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "pt005",
-    name: "HP LaserJet M1005 MFP",
-    category: "Printers",
-    price: 280,
-    offerPrice: 260,
-    image: [m1005_mfp_1],
-    description: [
-      "Print, scan, and copy",
-      "Laser quality output",
-      "High monthly duty cycle",
-    ],
-    createdAt: "2025-03-21T09:20:00.000Z",
-    updatedAt: "2025-03-21T09:25:00.000Z",
-    inStock: true,
-  },
-
-  // Software
-  {
-    _id: "sw001",
-    name: "Microsoft Office 2021 Home & Student",
-    category: "softwares",
-    price: 150,
-    offerPrice: 130,
-    image: [office_2021_1],
-    description: [
-      "Includes Word, Excel, PowerPoint",
-      "One-time purchase",
-      "For 1 PC or Mac",
-    ],
-    createdAt: "2025-03-25T09:40:00.000Z",
-    updatedAt: "2025-03-25T09:45:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "sw002",
-    name: "Adobe Photoshop Elements 2024",
-    category: "softwares",
-    price: 100,
-    offerPrice: 90,
-    image: [photoshop_elements_2024],
-    description: [
-      "Photo editing and organization",
-      "Guided edits and effects",
-      "No subscription required",
-    ],
-    createdAt: "2025-03-24T09:40:00.000Z",
-    updatedAt: "2025-03-24T09:45:00.000Z",
-    inStock: true,
-  },
-  {
-    _id: "sw004",
-    name: "AutoCAD 2025",
-    category: "softwares",
-    price: 1600,
-    offerPrice: 1500,
-    image: [autocad_2025_1],
-    description: [
-      "2D and 3D CAD design",
-      "Industry-standard tool",
-      "One-year subscription",
-    ],
-    createdAt: "2025-03-22T09:40:00.000Z",
-    updatedAt: "2025-03-22T09:45:00.000Z",
     inStock: true,
   },
 ];
@@ -815,3 +315,62 @@ export const dummyOrders = [
     updatedAt: "2025-03-25T07:17:13.068Z",
   },
 ];
+
+
+export const dummyPayment = [
+  {
+    payment_id: "67b5b9e54ea97f71bbc196a1",
+    order_id: "ORD001",
+    user_id: "67b5880e4d09769c5ca61644",
+    amount: "125.75",
+    method: "cash_on_delivery",
+    status: "pending",
+    transaction_id: null,
+    createdAt: "2024-01-15T10:30:00.000Z",
+    updatedAt: "2024-01-15T10:30:00.000Z"
+  },
+  {
+    payment_id: "67b5b9e54ea97f71bbc196a2",
+    order_id: "ORD002",
+    user_id: "67b5880e4d09769c5ca61644",
+    amount: "89.99",
+    method: "credit_card",
+    status: "completed",
+    transaction_id: "TXN_CC_789456123",
+    createdAt: "2024-01-15T11:45:00.000Z",
+    updatedAt: "2024-01-15T11:47:30.000Z"
+  },
+  {
+    payment_id: "67b5b9e54ea97f71bbc196a3",
+    order_id: "ORD003",
+    user_id: "67b5880e4d09769c5ca61644",
+    amount: "215.50",
+    method: "paypal",
+    status: "completed",
+    transaction_id: "PP-1234567890",
+    createdAt: "2024-01-15T14:20:00.000Z",
+    updatedAt: "2024-01-15T14:22:15.000Z"
+  },
+  {
+    payment_id: "67b5b9e54ea97f71bbc196a4",
+    order_id: "ORD004",
+    user_id: "67b5880e4d09769c5ca61644",
+    amount: "42.25",
+    method: "cash_on_delivery",
+    status: "pending",
+    transaction_id: null,
+    createdAt: "2024-01-16T09:15:00.000Z",
+    updatedAt: "2024-01-16T09:15:00.000Z"
+  },
+  {
+    payment_id: "67b5b9e54ea97f71bbc196a5",
+    order_id: "ORD005",
+    user_id: "67b5880e4d09769c5ca61644",
+    amount: "156.80",
+    method: "bank_transfer",
+    status: "failed",
+    transaction_id: "BT_987654321",
+    createdAt: "2024-01-16T13:40:00.000Z",
+    updatedAt: "2024-01-16T13:45:00.000Z"
+  }
+]

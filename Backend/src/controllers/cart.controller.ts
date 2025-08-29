@@ -18,7 +18,9 @@ const getOrCreateCart = asyncHandler(async (req: Request, res: Response) => {
     if (userId) {
       cart = await prisma.cart.findUnique({
         where: { user_id: userId },
-        include: { items: { include: { product: { include: { category: true } } } } },
+        include: {
+          items: { include: { product: { include: { category: true } } } },
+        },
       });
     }
 
@@ -26,7 +28,9 @@ const getOrCreateCart = asyncHandler(async (req: Request, res: Response) => {
     if (!cart && guestId) {
       cart = await prisma.cart.findUnique({
         where: { guestId },
-        include: { items: { include: { product: { include: { category: true } } } } },
+        include: {
+          items: { include: { product: { include: { category: true } } } },
+        },
       });
     }
 
@@ -61,18 +65,19 @@ const getOrCreateCart = asyncHandler(async (req: Request, res: Response) => {
     try {
       const newCart = await prisma.cart.create({
         data: createData,
-        include: { items: { include: { product: { include: { category: true } } } } },
+        include: {
+          items: { include: { product: { include: { category: true } } } },
+        },
       });
       return res.status(200).json(new ApiResponse(200, newCart));
     } catch (error: any) {
       // Handle unique constraint error for guestId
-      if (
-        error.code === "P2002" &&
-        error.meta?.target?.includes("guestId")
-      ) {
+      if (error.code === "P2002" && error.meta?.target?.includes("guestId")) {
         const existingCart = await prisma.cart.findUnique({
           where: { guestId: createData.guestId },
-          include: { items: { include: { product: { include: { category: true } } } } },
+          include: {
+            items: { include: { product: { include: { category: true } } } },
+          },
         });
         return res.status(200).json(new ApiResponse(200, existingCart));
       }
@@ -145,7 +150,9 @@ const addItemToCart = asyncHandler(async (req: Request, res: Response) => {
   // Return updated cart
   const updatedCart = await prisma.cart.findUniqueOrThrow({
     where: { cart_id: cartId },
-    include: { items: { include: { product: { include: { category: true } } } } },
+    include: {
+      items: { include: { product: { include: { category: true } } } },
+    },
   });
 
   return res
@@ -185,7 +192,9 @@ const removeItemFromCart = asyncHandler(async (req: Request, res: Response) => {
   // Return updated cart
   const updatedCart = await prisma.cart.findUniqueOrThrow({
     where: { cart_id: cartId },
-    include: { items: { include: { product: { include: { category: true } } } } },
+    include: {
+      items: { include: { product: { include: { category: true } } } },
+    },
   });
 
   return res
@@ -206,21 +215,31 @@ const mergeCarts = asyncHandler(async (req: Request, res: Response) => {
   if (!guestId) {
     let userCart = await prisma.cart.findUnique({
       where: { user_id: userId },
-      include: { items: { include: { product: { include: { category: true } } } } },
+      include: {
+        items: { include: { product: { include: { category: true } } } },
+      },
     });
-    
+
     if (!userCart) {
       userCart = await prisma.cart.create({
         data: {
           user_id: userId,
         },
-        include: { items: { include: { product: { include: { category: true } } } } },
+        include: {
+          items: { include: { product: { include: { category: true } } } },
+        },
       });
     }
-    
+
     return res
       .status(200)
-      .json(new ApiResponse(200, userCart, "User cart retrieved/created successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          userCart,
+          "User cart retrieved/created successfully"
+        )
+      );
   }
 
   const guestCart = await prisma.cart.findUnique({
@@ -232,21 +251,31 @@ const mergeCarts = asyncHandler(async (req: Request, res: Response) => {
   if (!guestCart) {
     let userCart = await prisma.cart.findUnique({
       where: { user_id: userId },
-      include: { items: { include: { product: { include: { category: true } } } } },
+      include: {
+        items: { include: { product: { include: { category: true } } } },
+      },
     });
-    
+
     if (!userCart) {
       userCart = await prisma.cart.create({
         data: {
           user_id: userId,
         },
-        include: { items: { include: { product: { include: { category: true } } } } },
+        include: {
+          items: { include: { product: { include: { category: true } } } },
+        },
       });
     }
-    
+
     return res
       .status(200)
-      .json(new ApiResponse(200, userCart, "User cart retrieved/created successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          userCart,
+          "User cart retrieved/created successfully"
+        )
+      );
   }
 
   let userCart = await prisma.cart.findUnique({
@@ -300,7 +329,9 @@ const mergeCarts = asyncHandler(async (req: Request, res: Response) => {
 
     return await tx.cart.findUnique({
       where: { cart_id: userCart.cart_id },
-      include: { items: { include: { product: { include: { category: true } } } } },
+      include: {
+        items: { include: { product: { include: { category: true } } } },
+      },
     });
   });
   res.clearCookie("guestId", {
@@ -319,9 +350,6 @@ const getCurrentUserCart = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.user_id;
   const guestId = req.cookies?.guestId;
 
-  console.log("🔍 getCurrentUserCart - userId:", userId);
-  console.log("🔍 getCurrentUserCart - guestId:", guestId);
-
   if (!userId && !guestId) {
     throw new ApiError(400, "User ID or guest ID is required");
   }
@@ -330,36 +358,35 @@ const getCurrentUserCart = asyncHandler(async (req: Request, res: Response) => {
 
   // If user is authenticated, ONLY get their user cart (not guest cart)
   if (userId) {
-    console.log("🔍 Looking for user cart with userId:", userId);
     cart = await prisma.cart.findUnique({
       where: { user_id: userId },
-      include: { items: { include: { product: { include: { category: true } } } } },
+      include: {
+        items: { include: { product: { include: { category: true } } } },
+      },
     });
-    
-    console.log("🔍 Found user cart:", cart ? `Cart ID: ${cart.cart_id}` : "No cart found");
-    
+
     // If no user cart found, create a new one for the user
     if (!cart) {
-      console.log("🔍 Creating new user cart for userId:", userId);
       cart = await prisma.cart.create({
         data: {
           user_id: userId,
         },
-        include: { items: { include: { product: { include: { category: true } } } } },
+        include: {
+          items: { include: { product: { include: { category: true } } } },
+        },
       });
-      console.log("🔍 Created new user cart:", cart.cart_id);
     }
   } else {
     // If not authenticated, try guest cart
     if (guestId) {
-      console.log("🔍 Looking for guest cart with guestId:", guestId);
       cart = await prisma.cart.findUnique({
         where: { guestId },
-        include: { items: { include: { product: { include: { category: true } } } } },
+        include: {
+          items: { include: { product: { include: { category: true } } } },
+        },
       });
-      console.log("🔍 Found guest cart:", cart ? `Cart ID: ${cart.cart_id}` : "No cart found");
     }
-    
+
     if (!cart) {
       throw new ApiError(404, "Cart not found");
     }
@@ -380,7 +407,9 @@ const getCart = asyncHandler(async (req: Request, res: Response) => {
 
   const cart = await prisma.cart.findUnique({
     where: { cart_id: cartId },
-    include: { items: { include: { product: { include: { category: true } } } } },
+    include: {
+      items: { include: { product: { include: { category: true } } } },
+    },
   });
 
   if (!cart) {
@@ -392,6 +421,32 @@ const getCart = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, cart, "Cart retrieved successfully"));
 });
 
+const clearCart = asyncHandler(async (req: Request, res: Response) => {
+  const { cartId } = req.params;
+  if (!cartId) {
+    throw new ApiError(400, "cartId is required");
+  }
+
+  const cart = await prisma.cart.findUnique({
+    where: { cart_id: cartId },
+    include: {
+      items: { include: { product: { include: { category: true } } } },
+    },
+  });
+
+  if (!cart) {
+    throw new ApiError(404, "Cart not found");
+  }
+
+  await prisma.cartItem.deleteMany({
+    where: { cart_id: cartId },
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Cart cleared successfully"));
+});
+
 export {
   getOrCreateCart,
   addItemToCart,
@@ -399,4 +454,5 @@ export {
   mergeCarts,
   getCart,
   getCurrentUserCart,
+  clearCart,
 };

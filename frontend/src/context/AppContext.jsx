@@ -40,7 +40,8 @@ export const AppContextProvider = ({ children }) => {
   const [categoryData, setCategoryData] = useState([]);
 
   const [cartCount, setCartCount] = useState(0);
-  const [cart, setCart] = useState(0);
+  const [cart, setCart] = useState(null);
+  const [cartLoading, setCartLoading] = useState(false);
 
   const fetchProductsFromApi = async () => {
     try {
@@ -56,87 +57,123 @@ export const AppContextProvider = ({ children }) => {
     fetchProductsFromApi();
   }, []);
 
-  //total cart item count
-  const refreshCart = async () => {
+  // Comprehensive cart management
+  const updateCartState = (cartData) => {
+    if (!cartData) {
+      setCart(null);
+      setCartCount(0);
+      return;
+    }
+    
+    setCart(cartData);
+    
+    // Calculate cart count
+    const items = cartData?.items || [];
+    const count = items.reduce((total, item) => total + item.quantity, 0);
+    setCartCount(count);
+    
+    // Store cart ID for future use
+    if (cartData.cart_id) {
+      localStorage.setItem("CartId", cartData.cart_id);
+    }
+  };
+
+  // Enhanced cart fetching with proper state management
+  const fetchCart = async (forceRefresh = false) => {
+    if (cartLoading && !forceRefresh) return;
+    
     try {
+      setCartLoading(true);
       let result = null;
       
       // If user is authenticated, use getCurrentUserCart
       if (user) {
         try {
           result = await getCurrentUserCart();
-          if (result && result.cart_id) {
-            localStorage.setItem("CartId", result.cart_id);
-          }
         } catch (err) {
-          console.error("Error fetching user cart for count:", err);
-          // If user cart fetch fails, try with cartId
+          console.error("Error fetching user cart:", err);
+          // Fallback to guest cart if user cart fails
           const cartId = localStorage.getItem("CartId");
           if (cartId) {
             result = await getCart(cartId);
+          } else {
+            result = await getOrCreateCart();
           }
         }
       } else {
-        // For guest users, use the existing cart ID logic
+        // For guest users
         const cartId = localStorage.getItem("CartId");
         if (cartId) {
           result = await getCart(cartId);
+        } else {
+          result = await getOrCreateCart();
         }
       }
       
-      if (!result) {
-        setCartCount(0);
-        return;
-      }
-
-      const items = result?.items || [];
-      const count = items.reduce(
-        (totalAmount, item) => totalAmount + item.quantity,
-        0
-      );
-      setCartCount(count);
+      updateCartState(result);
+      return result;
     } catch (error) {
-      console.error("Error refreshing cart:", error);
-      setCartCount(0);
+      console.error("Error fetching cart:", error);
+      updateCartState(null);
+    } finally {
+      setCartLoading(false);
     }
   };
 
-  // fetch cart
-  const fetchCart = async () => {
-    try {
-      const result = await getOrCreateCart();
-      if (!result) return;
-      setCart(result);
-      if (result.cart_id) {
-        localStorage.setItem("CartId", result.cart_id);
-      }
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-    }
+  // Legacy refreshCart function for backwards compatibility
+  const refreshCart = async () => {
+    await fetchCart(true);
   };
 
+  // Enhanced cart update function for components to use
+  const updateCart = (newCartData) => {
+    updateCartState(newCartData);
+  };
+
+  // Initialize cart on component mount and when user changes
   useEffect(() => {
-    refreshCart();
+    fetchCart(true);
+  }, [user]);
+
+  // Initial cart load
+  useEffect(() => {
+    if (!cart && !cartLoading) {
+      fetchCart();
+    }
   }, []);
 
   const value = {
+    // Cart state
     cart,
     setCart,
-    fetchCart,
     cartCount,
     setCartCount,
+    cartLoading,
+    
+    // Cart management functions
+    fetchCart,
     refreshCart,
+    updateCart,
+    updateCartState,
+    
+    // User data
     userData,
     setUserData,
-    api,
-    apiFile,
-    navigate,
     user,
     setUser,
     isSeller,
     setIsSeller,
+    
+    // API and navigation
+    api,
+    apiFile,
+    navigate,
+    
+    // Product data
     apiProduct,
     currency,
+    
+    // Search and category
     searchQuery,
     setSearchQuery,
     categoryData,

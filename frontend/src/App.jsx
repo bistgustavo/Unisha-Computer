@@ -16,6 +16,7 @@ import SellerLayout from "./components/pages/seller/SellerLayout.jsx";
 import AddProduct from "./components/Seller/AddProduct.jsx";
 import ProductList from "./components/Seller/ProductList.jsx";
 import Order from "./components/Seller/Order.jsx";
+import Payment from "./components/Seller/Payment.jsx";
 import Login from "./components/Login.jsx";
 import SignupForm from "./components/Signup.jsx";
 import Profile from "./components/pages/Profile.jsx";
@@ -56,6 +57,7 @@ function App() {
             <Route index element={isSeller ? <AddProduct /> : null} />
             <Route path="product-list" element={<ProductList />} />
             <Route path="orders" element={<Order />} />
+            <Route path="payment" element={<Payment />} />
           </Route>
         </Routes>
       </main>

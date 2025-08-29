@@ -7,6 +7,7 @@ import {
   mergeCarts,
   getCart,
   getCurrentUserCart,
+  clearCart,
 } from "../controllers/cart.controller";
 import { verifyJWT } from "../middlewares/auth";
 import { handleGuestId } from "../middlewares/guestMiddleware";
@@ -29,9 +30,12 @@ router.delete("/:cartId/items/:cartItemId", removeItemFromCart);
 router.post("/merge", verifyJWT, mergeCarts);
 
 // Get current user's cart (for authenticated users)
-router.get("/current",verifyJWT, getCurrentUserCart);
+router.get("/current", verifyJWT, getCurrentUserCart);
 
 // Get cart by ID
 router.get("/:cartId", getCart);
+
+// Clear cart by ID
+router.delete("/:cartId/clear", clearCart);
 
 export default router;

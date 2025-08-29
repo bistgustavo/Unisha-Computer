@@ -9,7 +9,7 @@ import {
 import toast from "react-hot-toast";
 
 const ProductCard = ({ product }) => {
-  const { currency, navigate, refreshCart, cart, fetchCart, setCart } =
+  const { currency, navigate, refreshCart, cart, updateCart, cartLoading } =
     useAppContext();
   const [loading, setLoading] = useState({
     add: false,
@@ -18,10 +18,7 @@ const ProductCard = ({ product }) => {
   });
   const [localQuantity, setLocalQuantity] = useState(0);
 
-  // Fetch cart on component mount
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  // No need to fetch cart on component mount as context handles it
 
   // Update local quantity when cart changes
   useEffect(() => {
@@ -37,12 +34,16 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = async (e) => {
     e?.stopPropagation();
+    if (!cart?.cart_id) {
+      toast.error("Cart not ready, please try again");
+      return;
+    }
+    
     setLoading((prev) => ({ ...prev, add: true }));
     try {
       const result = await addItemToCart(cart.cart_id, product.product_id, 1);
-      setCart(result); // ✅ Refresh cart from backend
+      updateCart(result); // ✅ Update context immediately
       toast.success("Added to cart!");
-      await refreshCart();
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast.error(error.message || "Failed to add to cart");
@@ -53,21 +54,26 @@ const ProductCard = ({ product }) => {
 
   const handleIncreaseQuantity = async (e) => {
     e.stopPropagation();
+    if (!cart?.cart_id) {
+      toast.error("Cart not ready, please try again");
+      return;
+    }
+    
     setLoading((prev) => ({ ...prev, increase: true }));
     try {
       const cartItem = cart?.items?.find(
         (item) => item.product_id === product.product_id
       );
       if (!cartItem) return handleAddToCart(e);
+      
       await removeItemFromCart(cart.cart_id, cartItem.cart_item_id);
       const result = await addItemToCart(
         cart.cart_id,
         product.product_id,
         cartItem.quantity + 1
       );
-      setCart(result);
-      toast.success("Added to cart!");
-      await refreshCart();
+      updateCart(result); // ✅ Update context immediately
+      toast.success("Quantity updated!");
     } catch (error) {
       console.error("Error increasing quantity:", error);
       toast.error(error.message || "Failed to update quantity");
@@ -78,6 +84,11 @@ const ProductCard = ({ product }) => {
 
   const handleDecreaseQuantity = async (e) => {
     e.stopPropagation();
+    if (!cart?.cart_id) {
+      toast.error("Cart not ready, please try again");
+      return;
+    }
+    
     setLoading((prev) => ({ ...prev, decrease: true }));
     try {
       const cartItem = cart?.items?.find(
@@ -90,9 +101,8 @@ const ProductCard = ({ product }) => {
           cart.cart_id,
           cartItem.cart_item_id
         );
-        setCart(result);
+        updateCart(result); // ✅ Update context immediately
         toast.success("Removed from cart");
-        await refreshCart();
       } else {
         await removeItemFromCart(cart.cart_id, cartItem.cart_item_id);
         const result = await addItemToCart(
@@ -100,8 +110,8 @@ const ProductCard = ({ product }) => {
           product.product_id,
           cartItem.quantity - 1
         );
-        setCart(result);
-        toast.success("Removed from cart");
+        updateCart(result); // ✅ Update context immediately
+        toast.success("Quantity updated!");
       }
     } catch (error) {
       console.error("Error decreasing quantity:", error);

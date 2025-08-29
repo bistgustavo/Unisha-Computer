@@ -29,6 +29,8 @@ import AddressRouter from "./routes/address.routes";
 import CategoryRouter from "./routes/category.routes";
 import ProductRouter from "./routes/product.routes";
 import CartRouter from "./routes/cart.routes";
+import OrderRouter from "./routes/order.routes";
+import PaymentRouter from "./routes/payment.routes";
 
 //Routes
 app.use("/api/v2/user", UserRouter);
@@ -36,6 +38,8 @@ app.use("/api/v2/address", AddressRouter);
 app.use("/api/v2/category", CategoryRouter);
 app.use("/api/v2/cart", CartRouter);
 app.use("/api/v2/product", ProductRouter);
+app.use("/api/v2/order", OrderRouter);
+app.use("/api/v2/payment", PaymentRouter);
 
 //error handler middleware
 
@@ -44,9 +48,5 @@ app.use(
     errorHandler(err, req, res, next);
   }
 );
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("Backend is running! 🚀");
-});
 
 export { app };

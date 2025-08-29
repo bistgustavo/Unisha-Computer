@@ -61,3 +61,10 @@ export const verifyJWT = async (
     next(error); // Pass other errors to Express error handler
   }
 };
+
+export const adminCheck = (req: Request, res: Response, next: NextFunction) => {
+  if (req.user?.web_role !== "admin") {
+    throw new ApiError(403, "Unauthorized - Admin access required");
+  }
+  next();
+};
