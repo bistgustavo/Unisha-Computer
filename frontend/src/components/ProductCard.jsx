@@ -6,6 +6,8 @@ import {
   addItemToCart,
   removeItemFromCart,
 } from "../services/cartService.js";
+import { getProductRatingSummary } from "../services/reviewService.js";
+import StarRating from "./StarRating.jsx";
 import toast from "react-hot-toast";
 
 const ProductCard = ({ product }) => {
@@ -17,6 +19,7 @@ const ProductCard = ({ product }) => {
     decrease: false,
   });
   const [localQuantity, setLocalQuantity] = useState(0);
+  const [ratingSummary, setRatingSummary] = useState({ average_rating: 0, total_reviews: 0 });
 
   // No need to fetch cart on component mount as context handles it
 
@@ -31,6 +34,23 @@ const ProductCard = ({ product }) => {
       setLocalQuantity(0);
     }
   }, [cart, product.product_id]);
+
+  // Fetch product rating summary
+  useEffect(() => {
+    const fetchRatingSummary = async () => {
+      try {
+        const summary = await getProductRatingSummary(product.product_id);
+        setRatingSummary(summary);
+      } catch (error) {
+        console.error("Error fetching rating summary:", error);
+        // Keep default values on error
+      }
+    };
+
+    if (product?.product_id) {
+      fetchRatingSummary();
+    }
+  }, [product.product_id]);
 
   const handleAddToCart = async (e) => {
     e?.stopPropagation();
@@ -152,19 +172,11 @@ const ProductCard = ({ product }) => {
         <p className="text-gray-700 font-medium text-lg truncate hover:text-indigo-600">
           {product.name}
         </p>
-        <div className="flex items-center gap-0.5">
-          {Array(5)
-            .fill("")
-            .map((_, i) => (
-              <img
-                key={i}
-                className="md:w-3.5 w-3"
-                src={i < 4 ? assets.star_icon : assets.star_dull_icon}
-                alt=""
-              />
-            ))}
-          <p>(4)</p>
-        </div>
+        <StarRating
+          rating={ratingSummary.average_rating}
+          totalReviews={ratingSummary.total_reviews}
+          size="sm"
+        />
 
         <div className="flex items-end justify-between mt-auto">
           <p className="md:text-xl text-base font-medium text-indigo-500">

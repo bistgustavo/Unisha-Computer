@@ -1,4 +1,4 @@
-import api from './api.js';
+import api from "./api.js";
 
 // Payment API calls
 export const paymentService = {
@@ -7,7 +7,7 @@ export const paymentService = {
     try {
       const response = await api.patch(`/payment/updateStatus/${paymentId}`, {
         status,
-        transactionId
+        transactionId,
       });
       return response.data;
     } catch (error) {
@@ -28,7 +28,7 @@ export const paymentService = {
   // Get user's payments
   getUserPayments: async () => {
     try {
-      const response = await api.get('/payment/getUserPayments');
+      const response = await api.get("/payment/getUserPayments");
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -39,18 +39,33 @@ export const paymentService = {
   getAllPayments: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      Object.keys(params).forEach(key => {
-        if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+      Object.keys(params).forEach((key) => {
+        if (
+          params[key] !== undefined &&
+          params[key] !== null &&
+          params[key] !== ""
+        ) {
           queryParams.append(key, params[key]);
         }
       });
-      
-      const response = await api.get(`/payment/getAllPayments?${queryParams.toString()}`);
+
+      const response = await api.get(
+        `/payment/getAllPayments?${queryParams.toString()}`
+      );
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
+
+  esewaIntegration: async (paymentData) => {
+    try {
+      const response = await api.post("/payment/esewa/sign", paymentData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default paymentService;

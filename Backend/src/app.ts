@@ -31,6 +31,7 @@ import ProductRouter from "./routes/product.routes";
 import CartRouter from "./routes/cart.routes";
 import OrderRouter from "./routes/order.routes";
 import PaymentRouter from "./routes/payment.routes";
+import ReviewRouter from "./routes/review.routes";
 
 //Routes
 app.use("/api/v2/user", UserRouter);
@@ -40,6 +41,7 @@ app.use("/api/v2/cart", CartRouter);
 app.use("/api/v2/product", ProductRouter);
 app.use("/api/v2/order", OrderRouter);
 app.use("/api/v2/payment", PaymentRouter);
+app.use("/api/v2/review", ReviewRouter);
 
 //error handler middleware
 

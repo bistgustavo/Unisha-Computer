@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import orderService from "../../services/orderService.js";
 import toast from 'react-hot-toast';
+import { useSearchParams } from "react-router-dom";
 
 function MyOrders() {
   const [myOrders, setMyOrders] = useState([]);

@@ -10,6 +10,7 @@ import {
   changeUserProfile,
   deleteUser,
   getUser,
+  forgetPassword,
 } from "../controllers/users.controller";
 import { verifyJWT } from "../middlewares/auth";
 
@@ -27,5 +28,6 @@ router
   .patch(upload.single("profile"), verifyJWT, changeUserProfile);
 router.route("/delete").delete(verifyJWT, deleteUser);
 router.route("/getuser").get(verifyJWT, getUser);
+router.route("/forget-password").patch(forgetPassword);
 
 export default router;

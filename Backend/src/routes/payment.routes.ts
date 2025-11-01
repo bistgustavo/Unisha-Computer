@@ -1,11 +1,13 @@
-import { Router } from "express";
+import e, { Router } from "express";
 import {
   updatePaymentStatus,
   getPaymentById,
   getUserPayments,
   getAllPayments,
+  esewaIntegration,
 } from "../controllers/payment.controller";
 import { verifyJWT } from "../middlewares/auth";
+import crypto from "crypto";
 
 const router = Router();
 
@@ -20,5 +22,7 @@ router.get("/getUserPayments", verifyJWT, getUserPayments);
 
 // Admin: Get all payments
 router.get("/getAllPayments", verifyJWT, getAllPayments);
+
+router.post("/esewa/sign", esewaIntegration);
 
 export default router;

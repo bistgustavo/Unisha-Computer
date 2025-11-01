@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { ApiResponse } from "../utils/ApiResponse";
 import { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } from "../utils/emailService";
 
 // Create a new order from cart
 const createOrder = asyncHandler(async (req: Request, res: Response) => {
@@ -21,7 +22,7 @@ const createOrder = asyncHandler(async (req: Request, res: Response) => {
 
   // Verify address belongs to user
   const address = await prisma.address.findFirst({
-    where: { address_id: addressId, user_id: userId }
+    where: { address_id: addressId, user_id: userId },
   });
 
   if (!address) {
@@ -31,13 +32,13 @@ const createOrder = asyncHandler(async (req: Request, res: Response) => {
   // Get user's cart with items
   const cart = await prisma.cart.findUnique({
     where: { user_id: userId },
-    include: { 
-      items: { 
-        include: { 
-          product: true 
-        } 
-      } 
-    }
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
   });
 
   if (!cart || cart.items.length === 0) {
@@ -46,22 +47,32 @@ const createOrder = asyncHandler(async (req: Request, res: Response) => {
 
   // Calculate total and verify products
   let totalAmount = 0;
-  const orderItemsData: { product_id: string; quantity: number; price_at_purchase: Decimal; }[] = [];
-  
+  const orderItemsData: {
+    product_id: string;
+    quantity: number;
+    price_at_purchase: Decimal;
+  }[] = [];
+
   for (const item of cart.items) {
-    if (item.product.stock === "outOfStock" || item.product.quantity < item.quantity) {
-      throw new ApiError(400, `Product ${item.product.name} is out of stock or insufficient quantity`);
+    if (
+      item.product.stock === "outOfStock" ||
+      item.product.quantity < item.quantity
+    ) {
+      throw new ApiError(
+        400,
+        `Product ${item.product.name} is out of stock or insufficient quantity`
+      );
     }
-    
+
     // Use offerPrice (discounted price) if available, otherwise use regular price
-    const actualPrice = item.product.offerPrice || item.product.price;
+    const actualPrice = item.product.price;
     const itemTotal = Number(actualPrice) * item.quantity;
     totalAmount += itemTotal;
-    
+
     orderItemsData.push({
       product_id: item.product_id,
       quantity: item.quantity,
-      price_at_purchase: actualPrice
+      price_at_purchase: actualPrice,
     });
   }
 
@@ -75,10 +86,10 @@ const createOrder = asyncHandler(async (req: Request, res: Response) => {
         total_amount: totalAmount,
         status: "pending",
         items: {
-          create: orderItemsData
-        }
+          create: orderItemsData,
+        },
       },
-      include: { items: true }
+      include: { items: true },
     });
 
     // Create payment record
@@ -88,30 +99,78 @@ const createOrder = asyncHandler(async (req: Request, res: Response) => {
         user_id: userId,
         amount: totalAmount,
         method: paymentMethod,
-        status: "pending"
-      }
+        status: "pending",
+      },
     });
 
     // Update product quantities
     await Promise.all(
-      cart.items.map(item => 
+      cart.items.map((item) =>
         tx.product.update({
           where: { product_id: item.product_id },
-          data: { 
+          data: {
             quantity: { decrement: item.quantity },
-            stock: item.product.quantity - item.quantity <= 0 ? "outOfStock" : "available"
-          }
+            stock:
+              item.product.quantity - item.quantity <= 0
+                ? "outOfStock"
+                : "available",
+          },
         })
       )
     );
 
     // Clear the cart
     await tx.cartItem.deleteMany({
-      where: { cart_id: cart.cart_id }
+      where: { cart_id: cart.cart_id },
     });
 
     return newOrder;
   });
+
+  // Send order confirmation email
+  try {
+    // Get full order data with all relations for email
+    const fullOrderData = await prisma.order.findUnique({
+      where: { order_id: order.order_id },
+      include: {
+        user: {
+          select: {
+            user_id: true,
+            username: true,
+            email: true,
+            first_name: true,
+            last_name: true,
+          },
+        },
+        address: true,
+        items: {
+          include: {
+            product: {
+              include: { category: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (fullOrderData) {
+      const emailResult = await sendOrderConfirmationEmail({
+        order: fullOrderData,
+        user: fullOrderData.user,
+        items: fullOrderData.items,
+        address: fullOrderData.address,
+      });
+      
+      if (emailResult.success) {
+        console.log("Order confirmation email sent successfully");
+      } else {
+        console.warn("Failed to send order confirmation email:", emailResult.message);
+      }
+    }
+  } catch (emailError) {
+    console.error("Error sending order confirmation email:", emailError);
+    // Don't fail the order creation if email fails
+  }
 
   return res
     .status(201)
@@ -136,19 +195,19 @@ const getOrderById = asyncHandler(async (req: Request, res: Response) => {
           username: true,
           email: true,
           first_name: true,
-          last_name: true
-        }
+          last_name: true,
+        },
       },
       address: true,
       items: {
-        include: { 
+        include: {
           product: {
-            include: { category: true }
-          } 
-        }
+            include: { category: true },
+          },
+        },
       },
-      payment: true
-    }
+      payment: true,
+    },
   });
 
   if (!order) {
@@ -180,13 +239,13 @@ const getUserOrders = asyncHandler(async (req: Request, res: Response) => {
       items: {
         include: {
           product: {
-            include: { category: true }
-          }
-        }
+            include: { category: true },
+          },
+        },
       },
-      payment: true
+      payment: true,
     },
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
   });
 
   return res
@@ -214,26 +273,30 @@ const getAllOrders = asyncHandler(async (req: Request, res: Response) => {
             user_id: true,
             username: true,
             first_name: true,
-            last_name: true
-          }
+            last_name: true,
+          },
         },
         address: true,
-        payment: true
+        payment: true,
       },
       skip,
       take: Number(limit),
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     }),
-    prisma.order.count({ where: whereClause })
+    prisma.order.count({ where: whereClause }),
   ]);
 
   return res.status(200).json(
-    new ApiResponse(200, {
-      orders,
-      total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit))
-    }, "Orders retrieved successfully")
+    new ApiResponse(
+      200,
+      {
+        orders,
+        total,
+        page: Number(page),
+        pages: Math.ceil(total / Number(limit)),
+      },
+      "Orders retrieved successfully"
+    )
   );
 });
 
@@ -258,11 +321,20 @@ const updateOrderStatus = asyncHandler(async (req: Request, res: Response) => {
     where: { order_id: orderId },
     data: { status },
     include: {
-      items: {
-        include: { product: true }
+      user: {
+        select: {
+          user_id: true,
+          username: true,
+          email: true,
+          first_name: true,
+          last_name: true,
+        },
       },
-      payment: true
-    }
+      items: {
+        include: { product: true },
+      },
+      payment: true,
+    },
   });
 
   // If order is cancelled, update payment status and restore product quantities
@@ -270,18 +342,35 @@ const updateOrderStatus = asyncHandler(async (req: Request, res: Response) => {
     await prisma.$transaction([
       prisma.payment.update({
         where: { order_id: orderId },
-        data: { status: "refunded" }
+        data: { status: "refunded" },
       }),
-      ...order.items.map(item => 
+      ...order.items.map((item) =>
         prisma.product.update({
           where: { product_id: item.product_id },
-          data: { 
+          data: {
             quantity: { increment: item.quantity },
-            stock: "available"
-          }
+            stock: "available",
+          },
         })
-      )
+      ),
     ]);
+  }
+
+  // Send order status update email
+  try {
+    const emailResult = await sendOrderStatusUpdateEmail({
+      order: order,
+      user: order.user,
+    }, status);
+    
+    if (emailResult.success) {
+      console.log("Order status update email sent successfully");
+    } else {
+      console.warn("Failed to send order status update email:", emailResult.message);
+    }
+  } catch (emailError) {
+    console.error("Error sending order status update email:", emailError);
+    // Don't fail the status update if email fails
   }
 
   return res
@@ -294,5 +383,5 @@ export {
   getOrderById,
   getUserOrders,
   getAllOrders,
-  updateOrderStatus
+  updateOrderStatus,
 };

@@ -11,6 +11,7 @@ import {
 } from "../../services/cartService";
 import orderService from "../../services/orderService.js";
 import toast from "react-hot-toast";
+import paymentService from "../../services/paymentService.js";
 
 function Cart() {
   const [cart, setCart] = useState(null);
@@ -21,7 +22,8 @@ function Cart() {
   const [paymentOption, setPaymentOption] = useState("COD");
   const [error, setError] = useState(null);
 
-  const { api, currency, navigate, user, refreshCart, updateCart } = useAppContext();
+  const { apiFile, api, currency, navigate, user, refreshCart, updateCart } =
+    useAppContext();
 
   const fetchCart = async () => {
     try {
@@ -149,7 +151,6 @@ function Cart() {
       toast.error("Please select a delivery address");
       return;
     }
-
     if (!cart?.items || cart.items.length === 0) {
       toast.error("Your cart is empty");
       return;
@@ -159,40 +160,142 @@ function Cart() {
       setLoading(true);
       setError(null);
 
-      // Map payment option to backend format
       const paymentMethodMap = {
-        "COD": "cash_on_delivery",
-        "Online": "online_payment"
+        COD: "cash_on_delivery",
+        Online: "e_sewa",
       };
 
       const orderData = {
         addressId: selectAddress.address_id,
-        paymentMethod: paymentMethodMap[paymentOption] || "cash_on_delivery"
+        paymentMethod: paymentMethodMap[paymentOption] || "cash_on_delivery",
       };
 
-      // Create order using the API
+      // Create order (status = pending)
       const response = await orderService.createOrder(orderData);
-      
-      if (response.success) {
-        // Show success message with order details
-        toast.success(`Order placed successfully! Order ID: ${response.data.order_id?.slice(-8)}`);
-        
-        // Clear the cart and refresh
-        await fetchCart();
-        await refreshCart();
-        
-        // Navigate to orders page to see the placed order
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.message || "Order creation failed");
+      }
+
+      const order = response.data;
+      const orderId = order.order_id; // Use consistent variable
+
+      await fetchCart();
+      await refreshCart();
+
+      if (paymentOption === "Online") {
+        // Don't toast success yet; wait until after redirect
+        const actualAmount = getCartAmount().toFixed(2);
+        const transaction_uuid = orderId; // Use consistent order ID
+        const product_code = "EPAYTEST";
+
+        console.log("=== eSewa Debug Info ===");
+        console.log("Order ID:", orderId);
+        console.log("Amount:", actualAmount);
+        console.log("Transaction UUID:", transaction_uuid);
+
+        // Sign on backend
+        const signResponse = await paymentService.esewaIntegration({
+          total_amount: actualAmount,
+          transaction_uuid,
+          product_code,
+        });
+
+        console.log("Signature response:", signResponse);
+
+        // TEST: Try different signature formats
+        const testSignatureFormat = (signature, formatName) => {
+          const testPaymentData = {
+            amount: actualAmount,
+            failure_url: `${window.location.origin}/my-orders?payment=failed&order=${orderId}&test=${formatName}`,
+            product_delivery_charge: "0",
+            product_service_charge: "0",
+            product_code,
+            signature: signature,
+            signed_field_names: signResponse.signed_field_names,
+            success_url: `${window.location.origin}/my-orders?payment=success&order=${orderId}&test=${formatName}`,
+            tax_amount: "0",
+            total_amount: actualAmount,
+            transaction_uuid,
+          };
+
+          const testForm = document.createElement("form");
+          testForm.method = "POST";
+          testForm.action =
+            "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+
+          for (const key in testPaymentData) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = key;
+            input.value = testPaymentData[key];
+            testForm.appendChild(input);
+          }
+
+          document.body.appendChild(testForm);
+          const testWindow = window.open("", `esewa_test_${formatName}`);
+          testForm.target = `esewa_test_${formatName}`;
+          testForm.submit();
+
+          console.log(`Testing ${formatName} format`);
+        };
+
+        // Uncomment to test all signature formats
+        // if (signResponse.signature_format1) {
+        //   setTimeout(() => testSignatureFormat(signResponse.signature_format1, 'format1'), 1000);
+        // }
+        // if (signResponse.signature_format2) {
+        //   setTimeout(() => testSignatureFormat(signResponse.signature_format2, 'format2'), 2000);
+        // }
+        // if (signResponse.signature_sorted) {
+        //   setTimeout(() => testSignatureFormat(signResponse.signature_sorted, 'sorted'), 3000);
+        // }
+
+        // Build form (ORIGINAL CODE)
+        const paymentData = {
+          amount: actualAmount,
+          failure_url: `${window.location.origin}/my-orders?payment=failed&order=${orderId}`,
+          product_delivery_charge: "0",
+          product_service_charge: "0",
+          product_code,
+          signature: signResponse.signature,
+          signed_field_names: signResponse.signed_field_names,
+          success_url: `${window.location.origin}/my-orders?payment=success&order=${orderId}`,
+          tax_amount: "0",
+          total_amount: actualAmount,
+          transaction_uuid,
+        };
+
+        console.log("Final payment data being sent:", paymentData);
+
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+        for (const key in paymentData) {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = paymentData[key];
+          form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        toast.success("Redirecting to eSewa...");
+        setTimeout(() => form.submit(), 1000);
+      } else {
+        // Cash on Delivery
+        toast.success(
+          `Order placed successfully! Order ID: ${orderId?.slice(-8)}`
+        );
         setTimeout(() => {
           navigate("/my-orders");
           window.scrollTo(0, 0);
         }, 2000);
-      } else {
-        throw new Error(response.message || "Order creation failed");
       }
-      
     } catch (error) {
       console.error("Error placing order:", error);
-      const errorMessage = error.message || error.error || "Failed to place order. Please try again.";
+      const errorMessage =
+        error.message ||
+        error.error ||
+        "Failed to place order. Please try again.";
       toast.error(errorMessage);
       setError(errorMessage);
     } finally {
@@ -426,8 +529,10 @@ function Cart() {
               <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
               <span>Placing Order...</span>
             </div>
+          ) : paymentOption === "COD" ? (
+            "Place Order"
           ) : (
-            paymentOption === "COD" ? "Place Order" : "Proceed To CheckOut"
+            "Proceed To CheckOut"
           )}
         </button>
       </div>

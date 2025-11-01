@@ -299,6 +299,30 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(new ApiResponse(200, {}, "User deleted successfully"));
 });
 
+const forgetPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const { username } = req.body;
+  const { newPassword } = req.body;
+
+  if (!email && !username) {
+    throw new ApiError(400, "Email or username is required");
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [{ email: email }, { username: username }],
+    },
+  });
+
+  user &&
+    (await prisma.user.update({
+      where: { user_id: user.user_id },
+      data: { password: await hashPassword(newPassword) },
+    }));
+
+  res.status(200).json(new ApiResponse(200, {}, "Password reset successfully"));
+});
+
 export {
   getUser,
   registerUser,
@@ -308,4 +332,5 @@ export {
   updateAccountDetails,
   changeUserProfile,
   deleteUser,
+  forgetPassword,
 };

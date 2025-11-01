@@ -3,7 +3,10 @@ import { useAppContext } from "../../context/AppContext";
 import { Link, useParams } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import ProductCard from "../ProductCard";
+import StarRating from "../StarRating";
+import ReviewModal from "../ReviewModal";
 import { addItemToCart } from "../../services/cartService";
+import { getProductRatingSummary, getProductReviews } from "../../services/reviewService";
 import toast from "react-hot-toast";
 
 function ProductDetail() {
@@ -15,12 +18,37 @@ function ProductDetail() {
     refreshCart,
     cart,
     setCart,
+    userData,
+    user,
   } = useAppContext();
   const { id } = useParams();
   const [thumbnail, setThumbnail] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState({ average_rating: 0, total_reviews: 0 });
+  const [reviews, setReviews] = useState([]);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   const product = apiProduct.find((item) => item.product_id === id);
+
+  // Fetch rating summary and reviews
+  const fetchReviewData = async () => {
+    if (!product?.product_id) return;
+    
+    try {
+      setReviewsLoading(true);
+      const [summary, reviewsList] = await Promise.all([
+        getProductRatingSummary(product.product_id),
+        getProductReviews(product.product_id)
+      ]);
+      setRatingSummary(summary);
+      setReviews(reviewsList);
+    } catch (error) {
+      console.error("Error fetching review data:", error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   // handle add to cart
   const handleAddToCart = async (e) => {
@@ -62,6 +90,9 @@ function ProductDetail() {
     } else {
       setThumbnail(null);
     }
+    
+    // Fetch review data when product changes
+    fetchReviewData();
   }, [product]);
 
   return (
@@ -111,18 +142,18 @@ function ProductDetail() {
               {product.name}
             </h1>
 
-            <div className="flex items-center gap-0.5 mt-1">
-              {Array(5)
-                .fill("")
-                .map((_, i) => (
-                  <img
-                    key={`star-${i}`}
-                    className="md:w-4 w-3.5 hover:scale-125 transition-transform duration-200"
-                    src={i < 4 ? assets.star_icon : assets.star_dull_icon}
-                    alt="rating image"
-                  />
-                ))}
-              <p className="text-base ml-2">4 & Review</p>
+            <div className="flex items-center justify-between mt-1">
+              <StarRating
+                rating={ratingSummary.average_rating}
+                totalReviews={ratingSummary.total_reviews}
+                size="md"
+              />
+              <button
+                onClick={() => setIsReviewModalOpen(true)}
+                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition-colors"
+              >
+                Write a Review
+              </button>
             </div>
 
             <div className="mt-6">
@@ -163,6 +194,59 @@ function ProductDetail() {
             </div>
           </div>
         </div>
+        
+        {/* Reviews Section */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-medium mb-6">Customer Reviews</h2>
+          
+          {reviewsLoading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading reviews...</p>
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="space-y-6">
+              {reviews.slice(0, 5).map((review) => (
+                <div key={review.review_id} className="border-b border-gray-200 pb-6">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-gray-900">
+                          {review.user.first_name} {review.user.last_name}
+                        </h4>
+                        <span className="text-sm text-gray-500">
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <StarRating rating={review.rating} showText={false} size="sm" />
+                    </div>
+                  </div>
+                  {review.comment && (
+                    <p className="text-gray-700 mt-2">{review.comment}</p>
+                  )}
+                </div>
+              ))}
+              {reviews.length > 5 && (
+                <button 
+                  className="text-indigo-600 hover:text-indigo-800 font-medium"
+                  onClick={() => {/* Could implement show more reviews */}}
+                >
+                  Show more reviews ({reviews.length - 5} more)
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">No reviews yet</p>
+              <button
+                onClick={() => setIsReviewModalOpen(true)}
+                className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                Be the first to review
+              </button>
+            </div>
+          )}
+        </div>
+        
         {/*------- related products ---------*/}
         <div className="mt-16">
           <h2 className="text-2xl font-medium mb-6">Related Products</h2>
@@ -180,6 +264,15 @@ function ProductDetail() {
             ))}
           </div>
         </div>
+        
+        {/* Review Modal */}
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          product={product}
+          user={userData}
+          onReviewSubmitted={fetchReviewData}
+        />
       </div>
     )
   );

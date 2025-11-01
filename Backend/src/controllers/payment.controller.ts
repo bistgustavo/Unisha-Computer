@@ -4,6 +4,8 @@ import { ApiError } from "../utils/ApiError";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ApiResponse } from "../utils/ApiResponse";
 import { PaymentStatus, PaymentMethod } from "@prisma/client";
+import crypto from "crypto";
+import { esewaSecret } from "../secrets";
 
 // Helper function to validate payment status
 const isValidPaymentStatus = (status: any): status is PaymentStatus => {
@@ -213,4 +215,44 @@ const getAllPayments = asyncHandler(async (req: Request, res: Response) => {
   );
 });
 
-export { updatePaymentStatus, getPaymentById, getUserPayments, getAllPayments };
+const esewaIntegration = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { total_amount, transaction_uuid, product_code } = req.body;
+
+    console.log("=== eSewa Integration Debug ===");
+    console.log("Received:", { total_amount, transaction_uuid, product_code });
+
+    if (!total_amount || !transaction_uuid || !product_code) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const secretKey = esewaSecret!;
+
+    // TRY THIS FORMAT - Most common eSewa format
+    const message = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
+
+    const signature = crypto
+      .createHmac("sha256", secretKey)
+      .update(message)
+      .digest("base64");
+
+    console.log("Message used for signature:", message);
+    console.log("Generated signature:", signature);
+
+    return res.status(200).json({
+      signature: signature,
+      signed_field_names: "total_amount,transaction_uuid,product_code",
+    });
+  } catch (err) {
+    console.error("eSewa sign error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+export {
+  updatePaymentStatus,
+  getPaymentById,
+  getUserPayments,
+  getAllPayments,
+  esewaIntegration,
+};
